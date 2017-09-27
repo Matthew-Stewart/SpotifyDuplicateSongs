@@ -10,10 +10,12 @@ from pprint import pprint
 remixes = False
 
 def split_title(str):
+   removeSpecials = re.sub(r'[^\w\-()]', '', str, flags=re.UNICODE)
+   removeFeaturing = re.sub(r'-?\(?feat[^()\-]+\)?', '', removeSpecials)
+   removeRadioEdit = re.sub(r'-?\(?radioedit\)?', '', removeFeaturing)
    if remixes:
-      return str.split(' - ')[0].split(' (')[0]
-   else:
-      return str
+      return removeRadioEdit.split('-')[0].split('(')[0]
+   return removeRadioEdit
 
 scope = 'user-library-read'
 
@@ -45,12 +47,12 @@ if token:
       for item in results['items']:
          artists = set()
          track = item['track']
-         track_title = split_title(track['name'])
+         track_title = split_title(track['name'].lower())
          artists_names = [x['name'] for x in track['artists']]
          artists_str = ", ".join(artists_names)
          for artist in artists_names:
             for track_tuple in all_artists_songs[artist]:
-               if split_title(track_tuple[1]) == track_title:
+               if split_title(track_tuple[1].lower()) == track_title:
                   duplicates.add((artists_str, track['name']))
                   duplicates.add(track_tuple)
             all_artists_songs[artist].add((artists_str, track['name']))
